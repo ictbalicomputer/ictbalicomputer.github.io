@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>ICT BALI COMPUTER</title>
 
@@ -10,37 +10,21 @@
 
 <style>
 
-html, body{
+html,body{
 margin:0;
 padding:0;
 width:100%;
 height:100%;
 overflow:hidden;
-background:#fff;
 }
 
-/* membuat iframe benar-benar fullscreen */
-
-.iframe-container{
+iframe{
 position:fixed;
 top:0;
 left:0;
 width:100%;
-height:100dvh;
-overflow:hidden;
-}
-
-iframe{
-border:none;
-width:100%;
 height:100%;
-display:block;
-}
-
-/* memperbaiki touch di android */
-
-*{
-touch-action: manipulation;
+border:none;
 }
 
 </style>
@@ -49,15 +33,7 @@ touch-action: manipulation;
 
 <body>
 
-<div class="iframe-container">
-
-<iframe 
-src="https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec"
-loading="lazy"
-allowfullscreen>
-</iframe>
-
-</div>
+<iframe src="https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec"></iframe>
 
 </body>
 </html>
