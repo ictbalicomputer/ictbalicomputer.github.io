@@ -1,53 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ICT BALI COMPUTER</title>
+    <link rel="icon" href="https://i.ibb.co.com/JwwgBV65/logo-ict.png">
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Menghilangkan semua penghalang di level paling luar */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            overflow: hidden !important; /* WAJIB: agar scrollbar luar hilang total */
+            background-color: #ffffff;
+        }
 
-<title>ICT BALI COMPUTER</title>
+        .wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-<link rel="icon" href="https://i.ibb.co.com/JwwgBV65/logo-ict.png">
-
-<style>
-
-html,body{
-margin:0;
-padding:0;
-height:100%;
-width:100%;
-overflow:hidden;
-}
-
-iframe{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-border:none;
-}
-
-</style>
-
+        iframe {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+            margin: 0;
+            padding: 0;
+            /* Solusi untuk iOS & Android Chrome Desktop Mode */
+            min-height: 100%; 
+        }
+    </style>
 </head>
-
 <body>
 
-<iframe id="app"
-src="https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec">
-</iframe>
+    <div class="wrapper">
+        <iframe 
+            src="https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec"
+            allow="geolocation; microphone; camera; clipboard-write">
+        </iframe>
 
-<script>
-
-function fixScale(){
-let scale = window.innerWidth / document.documentElement.clientWidth;
-document.body.style.zoom = scale;
-}
-
-window.addEventListener("resize",fixScale);
-fixScale();
-
-</script>
+      <script>
+          function fixScale(){
+          let scale = window.innerWidth / document.documentElement.clientWidth;
+          document.body.style.zoom = scale;
+          }
+          window.addEventListener("resize",fixScale);
+          fixScale();
+      </script>
+      
+    </div>
 
 </body>
 </html>
+
