@@ -1,53 +1,269 @@
-<!DOCTYPE html>
-<html>
-<head>
+https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec<script>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+const API_URL = "https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec";
 
-<title>ICT BALI COMPUTER</title>
+let cart = [];
+let allProducts = [];
 
-<link rel="icon" href="https://i.ibb.co.com/JwwgBV65/logo-ict.png">
-
-<style>
-  
-html,body{
-margin:0;
-padding:0;
-height:100%;
-width:100%;
-overflow:hidden;
+function formatRupiah(angka){
+  return new Intl.NumberFormat("id-ID").format(angka);
 }
 
-iframe{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-border:none;
+function slide(index){
+  document.getElementById("slider").style.transform =
+  "translateX(-"+(index*100)+"%)";
+
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
 
-</style>
-
-</head>
-
-<body>
-
-<iframe id="app"
-src="https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec">
-</iframe>
-
-<script>
-
-function fixScale(){
-let scale = window.innerWidth / document.documentElement.clientWidth;
-document.body.style.zoom = scale;
+function goProfil(){
+  window.location.href = API_URL + "?page=profil";
 }
 
-window.addEventListener("resize",fixScale);
-fixScale();
+function tampilAlert(pesan){
+  document.getElementById("alertMessage").innerText = pesan;
+  document.getElementById("customAlert").classList.add("active");
+}
+
+function tutupAlert(){
+  document.getElementById("customAlert").classList.remove("active");
+}
+
+function bukaModalCheckout(){
+  if(cart.length === 0){
+    tampilAlert("Keranjang Anda masih kosong!");
+    return;
+  }
+  document.getElementById("checkoutModal").classList.add("active");
+}
+
+function tutupModalCheckout(){
+  document.getElementById("checkoutModal").classList.remove("active");
+}
+
+async function checkoutWhatsApp(){
+
+  let nama = document.getElementById("coNama").value.trim();
+  let wa = document.getElementById("coWA").value.trim();
+  let alamat = document.getElementById("coAlamat").value.trim();
+
+  if(!nama){
+    tampilAlert("Mohon isi Nama Lengkap Anda!");
+    return;
+  }
+
+  let noWATujuan="6283114612962";
+
+  let pesan="Halo ICT BALI COMPUTER, saya ingin memesan produk berikut:\n\n";
+
+  pesan+="*DATA PEMESAN*\n";
+  pesan+="Nama: "+nama+"\n";
+  pesan+="No WA: "+(wa?wa:"-")+"\n";
+  pesan+="Pengiriman: "+(alamat?alamat:"-")+"\n\n";
+
+  pesan+="*DETAIL PESANAN*\n\n";
+
+  let total=0;
+
+  cart.forEach((item,i)=>{
+    let subtotal=item.qty*item.harga;
+    total+=subtotal;
+
+    pesan+=(i+1)+". "+item.nama+"\n";
+    pesan+=item.qty+" x Rp "+formatRupiah(item.harga);
+    pesan+=" = Rp "+formatRupiah(subtotal)+"\n\n";
+  });
+
+  pesan+="TOTAL: Rp "+formatRupiah(total);
+
+  // kirim data ke GAS untuk kurangi stok
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      aksi:"kurangiStok",
+      data:cart
+    })
+  });
+
+  cart=[];
+  renderCart();
+  tutupModalCheckout();
+
+  let link="https://wa.me/"+noWATujuan+
+  "?text="+encodeURIComponent(pesan);
+
+  window.open(link,"_blank");
+}
+
+function handleSearch(event){
+  if(event.key==="Enter") cariProduk();
+}
+
+function cariProduk(){
+
+  let kataKunci=document
+  .getElementById("searchInput")
+  .value.toLowerCase();
+
+  let hasil=allProducts.filter(item =>
+  item.nama.toLowerCase().includes(kataKunci)
+  );
+
+  renderProducts(hasil);
+  slide(1);
+}
+
+function renderProducts(data){
+
+  let container=document.getElementById("productList");
+
+  if(!data || data.length===0){
+    container.innerHTML="Produk tidak ditemukan";
+    return;
+  }
+
+  let html="";
+
+  data.forEach((item,i)=>{
+
+    html+=`
+    <div class="card">
+
+      <div class="card-img-container">
+        <img src="${item.gambar}">
+      </div>
+
+      <div class="card-body">
+
+        <h3>${item.nama}</h3>
+
+        <div class="meta">
+          <span>${item.kategori}</span>
+          <span>Stok ${item.stok}</span>
+        </div>
+
+        <div class="price">
+          Rp ${formatRupiah(item.harga)}
+        </div>
+
+        <div class="action-row">
+
+          <input type="number"
+          id="qty-${i}"
+          class="qty-input"
+          value="1">
+
+          <button class="btn-add"
+          onclick="addToCart('${item.nama}',${item.harga},'qty-${i}')">
+
+          Tambah
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+    `;
+
+  });
+
+  container.innerHTML=html;
+}
+
+function addToCart(nama,harga,inputId){
+
+  let qty=parseInt(
+  document.getElementById(inputId).value
+  );
+
+  if(qty<1){
+    tampilAlert("Minimal 1 barang");
+    return;
+  }
+
+  let item=cart.find(x=>x.nama===nama);
+
+  if(item){
+    item.qty+=qty;
+  }else{
+    cart.push({nama,harga,qty});
+  }
+
+  renderCart();
+}
+
+function renderCart(){
+
+  let html="";
+  let total=0;
+
+  cart.forEach((item,i)=>{
+
+    let sub=item.qty*item.harga;
+    total+=sub;
+
+    html+=`
+    <div class="cart-item">
+      ${item.nama} x ${item.qty}
+      <b>Rp ${formatRupiah(sub)}</b>
+    </div>
+    `;
+  });
+
+  document.getElementById("cartItems").innerHTML=html;
+
+  document.getElementById("totalHarga").innerHTML=
+  "Total: Rp "+formatRupiah(total);
+}
+
+async function loadData(){
+
+  let container=document.getElementById("productList");
+
+  container.innerHTML="Memuat produk...";
+
+  try{
+
+    let res=await fetch(API_URL);
+    let data=await res.json();
+
+    allProducts=data;
+
+    renderProducts(allProducts);
+
+  }catch(err){
+
+    container.innerHTML="Gagal mengambil data";
+
+  }
+
+}
+
+function toggleTheme(){
+
+  document.body.classList.toggle("dark-mode");
+
+  if(document.body.classList.contains("dark-mode")){
+    localStorage.setItem("theme","dark");
+  }else{
+    localStorage.setItem("theme","light");
+  }
+
+}
+
+window.addEventListener("load",()=>{
+
+  let theme=localStorage.getItem("theme");
+
+  if(theme==="dark"){
+    document.body.classList.add("dark-mode");
+  }
+
+  renderCart();
+  loadData();
+
+});
 
 </script>
-
-</body>
-</html>
