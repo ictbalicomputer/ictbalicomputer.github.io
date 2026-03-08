@@ -1,296 +1,53 @@
+<!DOCTYPE html>
 <html>
-  <body>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>ICT BALI COMPUTER</title>
+
+<link rel="icon" href="https://i.ibb.co.com/JwwgBV65/logo-ict.png">
+
+<style>
+  
+html,body{
+margin:0;
+padding:0;
+height:100%;
+width:100%;
+overflow:hidden;
+}
+
+iframe{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+border:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<iframe id="app"
+src="https://script.google.com/macros/s/AKfycbxhLajZd-Vdajp8Re12XEI2Y-THKbnflpc6tENusWOoqu64iLnqu_qsiJ7ZGDwW2WDPOA/exec">
+</iframe>
+
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwW-pBcq0bsedjUds0mxrvQstewmwt1H8BPspKMtbAEAx1eJFt72Ba6sRkFH9OzaCBPkA/exec";
-
-let cart = [];
-let allProducts = [];
-
-function formatRupiah(angka){
-  return new Intl.NumberFormat("id-ID").format(angka);
+function fixScale(){
+let scale = window.innerWidth / document.documentElement.clientWidth;
+document.body.style.zoom = scale;
 }
 
-function slide(index){
-  let slider = document.getElementById("slider");
-  if(!slider) return;
-
-  slider.style.transform = "translateX(-"+(index*100)+"%)";
-
-  window.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
-}
-
-function tampilAlert(pesan){
-  let box = document.getElementById("alertMessage");
-  let modal = document.getElementById("customAlert");
-
-  if(!box || !modal) return;
-
-  box.innerText = pesan;
-  modal.classList.add("active");
-}
-
-function tutupAlert(){
-  let modal = document.getElementById("customAlert");
-  if(modal) modal.classList.remove("active");
-}
-
-function bukaModalCheckout(){
-  if(cart.length===0){
-    tampilAlert("Keranjang masih kosong!");
-    return;
-  }
-
-  let modal = document.getElementById("checkoutModal");
-  if(modal) modal.classList.add("active");
-}
-
-function tutupModalCheckout(){
-  let modal = document.getElementById("checkoutModal");
-  if(modal) modal.classList.remove("active");
-}
-
-async function checkoutWhatsApp(){
-
-let nama = document.getElementById("coNama")?.value.trim();
-let wa = document.getElementById("coWA")?.value.trim();
-let alamat = document.getElementById("coAlamat")?.value.trim();
-
-if(!nama){
-tampilAlert("Mohon isi nama");
-return;
-}
-
-let pesan="Halo ICT BALI COMPUTER%0A%0A";
-pesan+="*DATA PEMESAN*%0A";
-pesan+="Nama: "+nama+"%0A";
-pesan+="No WA: "+(wa||"-")+"%0A";
-pesan+="Pengiriman: "+(alamat||"-")+"%0A%0A";
-
-pesan+="*DETAIL PESANAN*%0A%0A";
-
-let total=0;
-
-cart.forEach((item,i)=>{
-
-let sub=item.qty*item.harga;
-total+=sub;
-
-pesan+=(i+1)+". "+item.nama+"%0A";
-pesan+=item.qty+" x Rp "+formatRupiah(item.harga);
-pesan+=" = Rp "+formatRupiah(sub)+"%0A%0A";
-
-});
-
-pesan+="*TOTAL Rp "+formatRupiah(total)+"*";
-
-await fetch(API_URL,{
-method:"POST",
-body:JSON.stringify({
-aksi:"kurangiStok",
-data:cart
-})
-});
-
-cart=[];
-renderCart();
-tutupModalCheckout();
-
-window.open(
-"https://wa.me/6283114612962?text="+pesan,
-"_blank"
-);
-
-}
-
-function handleSearch(event){
-if(event.key==="Enter") cariProduk();
-}
-
-function cariProduk(){
-
-let input=document.getElementById("searchInput");
-if(!input) return;
-
-let kata=input.value.toLowerCase();
-
-let hasil=allProducts.filter(item =>
-item.nama.toLowerCase().includes(kata)
-);
-
-renderProducts(hasil);
-slide(1);
-
-}
-
-function renderProducts(data){
-
-let container=document.getElementById("productList");
-
-if(!container) return;
-
-if(!data || data.length===0){
-container.innerHTML="Produk tidak ditemukan";
-return;
-}
-
-let html="";
-
-data.forEach((item,i)=>{
-
-html+=`
-<div class="card">
-
-<div class="card-img-container">
-<img src="${item.gambar}">
-</div>
-
-<div class="card-body">
-
-<h3>${item.nama}</h3>
-
-<div class="meta">
-<span>${item.kategori}</span>
-<span>Stok ${item.stok}</span>
-</div>
-
-<div class="price">
-Rp ${formatRupiah(item.harga)}
-</div>
-
-<div class="action-row">
-
-<input type="number"
-id="qty-${i}"
-class="qty-input"
-value="1"
-min="1">
-
-<button class="btn-add"
-onclick="addToCart('${item.nama}',${item.harga},'qty-${i}')">
-
-Tambah
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-`;
-
-});
-
-container.innerHTML=html;
-
-}
-
-function addToCart(nama,harga,inputId){
-
-let input=document.getElementById(inputId);
-if(!input) return;
-
-let qty=parseInt(input.value);
-
-if(qty<1){
-tampilAlert("Minimal 1 barang");
-return;
-}
-
-let item=cart.find(x=>x.nama===nama);
-
-if(item){
-item.qty+=qty;
-}else{
-cart.push({nama,harga,qty});
-}
-
-renderCart();
-
-}
-
-function renderCart(){
-
-let box=document.getElementById("cartItems");
-let totalBox=document.getElementById("totalHarga");
-
-if(!box || !totalBox) return;
-
-let html="";
-let total=0;
-
-cart.forEach(item=>{
-
-let sub=item.qty*item.harga;
-total+=sub;
-
-html+=`
-<div class="cart-item">
-${item.nama} x ${item.qty}
-<b>Rp ${formatRupiah(sub)}</b>
-</div>
-`;
-
-});
-
-box.innerHTML=html;
-totalBox.innerHTML="Total: Rp "+formatRupiah(total);
-
-}
-
-async function loadData(){
-
-let container=document.getElementById("productList");
-if(!container) return;
-
-container.innerHTML="Memuat produk...";
-
-try{
-
-let res=await fetch(API_URL);
-let data=await res.json();
-
-allProducts=data;
-
-renderProducts(allProducts);
-
-}catch(err){
-
-container.innerHTML="Gagal mengambil data";
-
-}
-
-}
-
-function toggleTheme(){
-
-document.body.classList.toggle("dark-mode");
-
-if(document.body.classList.contains("dark-mode")){
-localStorage.setItem("theme","dark");
-}else{
-localStorage.setItem("theme","light");
-}
-
-}
-
-window.addEventListener("load",()=>{
-
-let theme=localStorage.getItem("theme");
-
-if(theme==="dark"){
-document.body.classList.add("dark-mode");
-}
-
-renderCart();
-loadData();
-
-});
+window.addEventListener("resize",fixScale);
+fixScale();
 
 </script>
-  </body>
+
+</body>
 </html>
