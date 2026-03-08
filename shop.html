@@ -10,259 +10,282 @@ function formatRupiah(angka){
 }
 
 function slide(index){
-  document.getElementById("slider").style.transform =
-  "translateX(-"+(index*100)+"%)";
+  let slider = document.getElementById("slider");
+  if(!slider) return;
 
-  window.scrollTo({ top:0, behavior:"smooth" });
-}
+  slider.style.transform = "translateX(-"+(index*100)+"%)";
 
-function goProfil(){
-  window.location.href = API_URL + "?page=profil";
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
 }
 
 function tampilAlert(pesan){
-  document.getElementById("alertMessage").innerText = pesan;
-  document.getElementById("customAlert").classList.add("active");
+  let box = document.getElementById("alertMessage");
+  let modal = document.getElementById("customAlert");
+
+  if(!box || !modal) return;
+
+  box.innerText = pesan;
+  modal.classList.add("active");
 }
 
 function tutupAlert(){
-  document.getElementById("customAlert").classList.remove("active");
+  let modal = document.getElementById("customAlert");
+  if(modal) modal.classList.remove("active");
 }
 
 function bukaModalCheckout(){
-  if(cart.length === 0){
-    tampilAlert("Keranjang Anda masih kosong!");
+  if(cart.length===0){
+    tampilAlert("Keranjang masih kosong!");
     return;
   }
-  document.getElementById("checkoutModal").classList.add("active");
+
+  let modal = document.getElementById("checkoutModal");
+  if(modal) modal.classList.add("active");
 }
 
 function tutupModalCheckout(){
-  document.getElementById("checkoutModal").classList.remove("active");
+  let modal = document.getElementById("checkoutModal");
+  if(modal) modal.classList.remove("active");
 }
 
 async function checkoutWhatsApp(){
 
-  let nama = document.getElementById("coNama").value.trim();
-  let wa = document.getElementById("coWA").value.trim();
-  let alamat = document.getElementById("coAlamat").value.trim();
+let nama = document.getElementById("coNama")?.value.trim();
+let wa = document.getElementById("coWA")?.value.trim();
+let alamat = document.getElementById("coAlamat")?.value.trim();
 
-  if(!nama){
-    tampilAlert("Mohon isi Nama Lengkap Anda!");
-    return;
-  }
+if(!nama){
+tampilAlert("Mohon isi nama");
+return;
+}
 
-  let noWATujuan="6283114612962";
+let pesan="Halo ICT BALI COMPUTER%0A%0A";
+pesan+="*DATA PEMESAN*%0A";
+pesan+="Nama: "+nama+"%0A";
+pesan+="No WA: "+(wa||"-")+"%0A";
+pesan+="Pengiriman: "+(alamat||"-")+"%0A%0A";
 
-  let pesan="Halo ICT BALI COMPUTER, saya ingin memesan produk berikut:\n\n";
+pesan+="*DETAIL PESANAN*%0A%0A";
 
-  pesan+="*DATA PEMESAN*\n";
-  pesan+="Nama: "+nama+"\n";
-  pesan+="No WA: "+(wa?wa:"-")+"\n";
-  pesan+="Pengiriman: "+(alamat?alamat:"-")+"\n\n";
+let total=0;
 
-  pesan+="*DETAIL PESANAN*\n\n";
+cart.forEach((item,i)=>{
 
-  let total=0;
+let sub=item.qty*item.harga;
+total+=sub;
 
-  cart.forEach((item,i)=>{
-    let subtotal=item.qty*item.harga;
-    total+=subtotal;
+pesan+=(i+1)+". "+item.nama+"%0A";
+pesan+=item.qty+" x Rp "+formatRupiah(item.harga);
+pesan+=" = Rp "+formatRupiah(sub)+"%0A%0A";
 
-    pesan+=(i+1)+". "+item.nama+"\n";
-    pesan+=item.qty+" x Rp "+formatRupiah(item.harga);
-    pesan+=" = Rp "+formatRupiah(subtotal)+"\n\n";
-  });
+});
 
-  pesan+="TOTAL: Rp "+formatRupiah(total);
+pesan+="*TOTAL Rp "+formatRupiah(total)+"*";
 
-  // kirim data ke GAS untuk kurangi stok
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      aksi:"kurangiStok",
-      data:cart
-    })
-  });
+await fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+aksi:"kurangiStok",
+data:cart
+})
+});
 
-  cart=[];
-  renderCart();
-  tutupModalCheckout();
+cart=[];
+renderCart();
+tutupModalCheckout();
 
-  let link="https://wa.me/"+noWATujuan+
-  "?text="+encodeURIComponent(pesan);
+window.open(
+"https://wa.me/6283114612962?text="+pesan,
+"_blank"
+);
 
-  window.open(link,"_blank");
 }
 
 function handleSearch(event){
-  if(event.key==="Enter") cariProduk();
+if(event.key==="Enter") cariProduk();
 }
 
 function cariProduk(){
 
-  let kataKunci=document
-  .getElementById("searchInput")
-  .value.toLowerCase();
+let input=document.getElementById("searchInput");
+if(!input) return;
 
-  let hasil=allProducts.filter(item =>
-  item.nama.toLowerCase().includes(kataKunci)
-  );
+let kata=input.value.toLowerCase();
 
-  renderProducts(hasil);
-  slide(1);
+let hasil=allProducts.filter(item =>
+item.nama.toLowerCase().includes(kata)
+);
+
+renderProducts(hasil);
+slide(1);
+
 }
 
 function renderProducts(data){
 
-  let container=document.getElementById("productList");
+let container=document.getElementById("productList");
 
-  if(!data || data.length===0){
-    container.innerHTML="Produk tidak ditemukan";
-    return;
-  }
+if(!container) return;
 
-  let html="";
+if(!data || data.length===0){
+container.innerHTML="Produk tidak ditemukan";
+return;
+}
 
-  data.forEach((item,i)=>{
+let html="";
 
-    html+=`
-    <div class="card">
+data.forEach((item,i)=>{
 
-      <div class="card-img-container">
-        <img src="${item.gambar}">
-      </div>
+html+=`
+<div class="card">
 
-      <div class="card-body">
+<div class="card-img-container">
+<img src="${item.gambar}">
+</div>
 
-        <h3>${item.nama}</h3>
+<div class="card-body">
 
-        <div class="meta">
-          <span>${item.kategori}</span>
-          <span>Stok ${item.stok}</span>
-        </div>
+<h3>${item.nama}</h3>
 
-        <div class="price">
-          Rp ${formatRupiah(item.harga)}
-        </div>
+<div class="meta">
+<span>${item.kategori}</span>
+<span>Stok ${item.stok}</span>
+</div>
 
-        <div class="action-row">
+<div class="price">
+Rp ${formatRupiah(item.harga)}
+</div>
 
-          <input type="number"
-          id="qty-${i}"
-          class="qty-input"
-          value="1">
+<div class="action-row">
 
-          <button class="btn-add"
-          onclick="addToCart('${item.nama}',${item.harga},'qty-${i}')">
+<input type="number"
+id="qty-${i}"
+class="qty-input"
+value="1"
+min="1">
 
-          Tambah
+<button class="btn-add"
+onclick="addToCart('${item.nama}',${item.harga},'qty-${i}')">
 
-          </button>
+Tambah
 
-        </div>
+</button>
 
-      </div>
+</div>
 
-    </div>
-    `;
+</div>
 
-  });
+</div>
+`;
 
-  container.innerHTML=html;
+});
+
+container.innerHTML=html;
+
 }
 
 function addToCart(nama,harga,inputId){
 
-  let qty=parseInt(
-  document.getElementById(inputId).value
-  );
+let input=document.getElementById(inputId);
+if(!input) return;
 
-  if(qty<1){
-    tampilAlert("Minimal 1 barang");
-    return;
-  }
+let qty=parseInt(input.value);
 
-  let item=cart.find(x=>x.nama===nama);
+if(qty<1){
+tampilAlert("Minimal 1 barang");
+return;
+}
 
-  if(item){
-    item.qty+=qty;
-  }else{
-    cart.push({nama,harga,qty});
-  }
+let item=cart.find(x=>x.nama===nama);
 
-  renderCart();
+if(item){
+item.qty+=qty;
+}else{
+cart.push({nama,harga,qty});
+}
+
+renderCart();
+
 }
 
 function renderCart(){
 
-  let html="";
-  let total=0;
+let box=document.getElementById("cartItems");
+let totalBox=document.getElementById("totalHarga");
 
-  cart.forEach((item,i)=>{
+if(!box || !totalBox) return;
 
-    let sub=item.qty*item.harga;
-    total+=sub;
+let html="";
+let total=0;
 
-    html+=`
-    <div class="cart-item">
-      ${item.nama} x ${item.qty}
-      <b>Rp ${formatRupiah(sub)}</b>
-    </div>
-    `;
-  });
+cart.forEach(item=>{
 
-  document.getElementById("cartItems").innerHTML=html;
+let sub=item.qty*item.harga;
+total+=sub;
 
-  document.getElementById("totalHarga").innerHTML=
-  "Total: Rp "+formatRupiah(total);
+html+=`
+<div class="cart-item">
+${item.nama} x ${item.qty}
+<b>Rp ${formatRupiah(sub)}</b>
+</div>
+`;
+
+});
+
+box.innerHTML=html;
+totalBox.innerHTML="Total: Rp "+formatRupiah(total);
+
 }
 
 async function loadData(){
 
-  let container=document.getElementById("productList");
+let container=document.getElementById("productList");
+if(!container) return;
 
-  container.innerHTML="Memuat produk...";
+container.innerHTML="Memuat produk...";
 
-  try{
+try{
 
-    let res=await fetch(API_URL);
-    let data=await res.json();
+let res=await fetch(API_URL);
+let data=await res.json();
 
-    allProducts=data;
+allProducts=data;
 
-    renderProducts(allProducts);
+renderProducts(allProducts);
 
-  }catch(err){
+}catch(err){
 
-    container.innerHTML="Gagal mengambil data";
+container.innerHTML="Gagal mengambil data";
 
-  }
+}
 
 }
 
 function toggleTheme(){
 
-  document.body.classList.toggle("dark-mode");
+document.body.classList.toggle("dark-mode");
 
-  if(document.body.classList.contains("dark-mode")){
-    localStorage.setItem("theme","dark");
-  }else{
-    localStorage.setItem("theme","light");
-  }
+if(document.body.classList.contains("dark-mode")){
+localStorage.setItem("theme","dark");
+}else{
+localStorage.setItem("theme","light");
+}
 
 }
 
 window.addEventListener("load",()=>{
 
-  let theme=localStorage.getItem("theme");
+let theme=localStorage.getItem("theme");
 
-  if(theme==="dark"){
-    document.body.classList.add("dark-mode");
-  }
+if(theme==="dark"){
+document.body.classList.add("dark-mode");
+}
 
-  renderCart();
-  loadData();
+renderCart();
+loadData();
 
 });
 
